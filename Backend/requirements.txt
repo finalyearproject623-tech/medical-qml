@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pymongo
+passlib[bcrypt]
+numpy
+pandas
+scikit-learn
+qiskit
+qiskit-machine-learning
+python-multipart
