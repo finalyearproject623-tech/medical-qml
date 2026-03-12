@@ -2,6 +2,7 @@ fastapi
 uvicorn
 pymongo
 passlib[bcrypt]
+bcrypt==3.2.2
 python-jose
 python-multipart
 numpy
