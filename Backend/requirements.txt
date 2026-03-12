@@ -12,3 +12,4 @@ qiskit
 qiskit-machine-learning
 pydantic
 fastapi-mail
+pennylane
