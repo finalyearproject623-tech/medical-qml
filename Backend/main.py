@@ -10,7 +10,6 @@ from datetime import datetime
 from auth import router as auth_router, get_current_user
 from predict import hybrid_predict
 from database import predictions_collection
-from metrics import calculate_metrics
 
 app = FastAPI(title="Medical Hybrid ML + QML API")
 
@@ -111,15 +110,6 @@ def get_all_history(user=Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Access denied")
 
     return list(predictions_collection.find({}, {"_id": 0}))
-
-
-# =====================================
-# METRICS
-# =====================================
-
-@app.get("/metrics")
-def get_metrics():
-    return calculate_metrics()
 
 
 # =====================================
