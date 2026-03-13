@@ -5,12 +5,14 @@ const Login = ({ setIsLoggedIn, switchToSignup, switchToForgot }) => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // prevent page refresh
+
     try {
       setError("");
       await loginUser(form);
       setIsLoggedIn(true);
-    } catch {
+    } catch (err) {
       setError("Invalid email or password");
     }
   };
@@ -44,11 +46,13 @@ const Login = ({ setIsLoggedIn, switchToSignup, switchToForgot }) => {
             Login
           </h2>
 
-          <div className="space-y-5">
+          {/* FORM START */}
+          <form onSubmit={handleSubmit} className="space-y-5">
 
             <input
               type="email"
               placeholder="Email"
+              required
               value={form.email}
               onChange={(e) =>
                 setForm({ ...form, email: e.target.value })
@@ -59,6 +63,7 @@ const Login = ({ setIsLoggedIn, switchToSignup, switchToForgot }) => {
             <input
               type="password"
               placeholder="Password"
+              required
               value={form.password}
               onChange={(e) =>
                 setForm({ ...form, password: e.target.value })
@@ -71,7 +76,7 @@ const Login = ({ setIsLoggedIn, switchToSignup, switchToForgot }) => {
             )}
 
             <button
-              onClick={handleSubmit}
+              type="submit"
               className="w-full bg-white text-purple-600 font-semibold py-3 rounded-xl hover:scale-105 transition duration-200"
             >
               Login
@@ -94,7 +99,9 @@ const Login = ({ setIsLoggedIn, switchToSignup, switchToForgot }) => {
               </span>
             </p>
 
-          </div>
+          </form>
+          {/* FORM END */}
+
         </div>
 
       </div>
