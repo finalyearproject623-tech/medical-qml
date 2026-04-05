@@ -1,3 +1,7 @@
+# =====================================
+# AUTH ROUTES (FINAL WORKING VERSION)
+# =====================================
+
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
@@ -11,6 +15,10 @@ from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 
 router = APIRouter()
 
+# =====================================
+# CONFIG
+# =====================================
+
 SECRET_KEY = "super_secret_key_change_this"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
@@ -20,9 +28,9 @@ ADMIN_EMAIL = "mylapallisuresh45@gmail.com"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-# ------------------------------
-# EMAIL CONFIG (FIXED)
-# ------------------------------
+# =====================================
+# EMAIL CONFIG (RENDER SAFE)
+# =====================================
 
 conf = ConnectionConfig(
     MAIL_USERNAME="gouthamravisgr@gmail.com",
@@ -35,9 +43,10 @@ conf = ConnectionConfig(
     MAIL_SSL_TLS=True,
     USE_CREDENTIALS=True
 )
-# ------------------------------
-# MODELS
-# ------------------------------
+
+# =====================================
+# SCHEMAS
+# =====================================
 
 class SignupRequest(BaseModel):
     email: EmailStr
@@ -59,9 +68,9 @@ class ResetPasswordRequest(BaseModel):
     new_password: str
 
 
-# ------------------------------
+# =====================================
 # PASSWORD UTILS
-# ------------------------------
+# =====================================
 
 def hash_password(password: str):
     return pwd_context.hash(password)
@@ -78,9 +87,9 @@ def create_access_token(data: dict):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-# ------------------------------
-# SEND OTP EMAIL (WORKING)
-# ------------------------------
+# =====================================
+# SEND OTP EMAIL
+# =====================================
 
 async def send_otp_email(receiver_email: EmailStr, otp: str):
 
@@ -106,9 +115,9 @@ async def send_otp_email(receiver_email: EmailStr, otp: str):
     await fm.send_message(message)
 
 
-# ------------------------------
-# SIGNUP (SEND OTP)
-# ------------------------------
+# =====================================
+# SIGNUP
+# =====================================
 
 @router.post("/signup")
 async def signup(data: SignupRequest):
@@ -135,9 +144,9 @@ async def signup(data: SignupRequest):
     return {"message": "OTP sent to your email"}
 
 
-# ------------------------------
+# =====================================
 # VERIFY SIGNUP OTP
-# ------------------------------
+# =====================================
 
 @router.post("/verify-signup-otp")
 def verify_signup_otp(data: VerifySignupOTP):
@@ -167,9 +176,9 @@ def verify_signup_otp(data: VerifySignupOTP):
     return {"message": "Account created successfully"}
 
 
-# ------------------------------
+# =====================================
 # LOGIN
-# ------------------------------
+# =====================================
 
 @router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -191,55 +200,57 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
     }
 
 
-# ------------------------------
-# FORGOT PASSWORD (EMAIL WORKING)
-# ------------------------------
+# =====================================
+# FORGOT PASSWORD
+# =====================================
 
 @router.post("/forgot-password")
-async def forgot_password(data: EmailSchema):
+async def forgot_password(data: ForgotPasswordRequest):
+
     user = users_collection.find_one({"email": data.email})
 
     if not user:
         raise HTTPException(status_code=404, detail="Email not found")
 
-    # generate OTP
     otp = str(random.randint(100000, 999999))
 
     otp_collection.update_one(
         {"email": data.email},
-        {"$set": {"otp": otp}},
+        {
+            "$set": {
+                "otp": otp,
+                "expires_at": datetime.utcnow() + timedelta(minutes=5)
+            }
+        },
         upsert=True
     )
 
-    # send email
-    message = MessageSchema(
-        subject="Reset Password OTP",
-        recipients=[data.email],
-        body=f"Your OTP is {otp}",
-        subtype="plain"
-    )
+    await send_otp_email(data.email, otp)
 
-    fm = FastMail(conf)
-    await fm.send_message(message)
+    return {"message": "OTP sent to your email"}
 
-    return {"message": "OTP sent successfully"}
 
-# ------------------------------
+# =====================================
 # RESET PASSWORD
-# ------------------------------
+# =====================================
 
 @router.post("/reset-password")
-async def reset_password(data: ResetSchema):
+async def reset_password(data: ResetPasswordRequest):
+
     record = otp_collection.find_one({"email": data.email})
 
-    if not record or record["otp"] != data.otp:
+    if not record:
+        raise HTTPException(status_code=400, detail="OTP not requested")
+
+    if record["otp"] != data.otp:
         raise HTTPException(status_code=400, detail="Invalid OTP")
 
-    hashed = bcrypt.hashpw(data.new_password.encode(), bcrypt.gensalt())
+    if datetime.utcnow() > record["expires_at"]:
+        raise HTTPException(status_code=400, detail="OTP expired")
 
     users_collection.update_one(
         {"email": data.email},
-        {"$set": {"password": hashed.decode()}}
+        {"$set": {"password": hash_password(data.new_password)}}
     )
 
     otp_collection.delete_one({"email": data.email})
@@ -247,9 +258,9 @@ async def reset_password(data: ResetSchema):
     return {"message": "Password reset successful"}
 
 
-# ------------------------------
+# =====================================
 # GET CURRENT USER
-# ------------------------------
+# =====================================
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
 
