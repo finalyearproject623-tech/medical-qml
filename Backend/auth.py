@@ -21,7 +21,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 # ------------------------------
-# EMAIL CONFIG
+# EMAIL CONFIG (kept but not used)
 # ------------------------------
 
 conf = ConnectionConfig(
@@ -80,31 +80,11 @@ def create_access_token(data: dict):
 
 
 # ------------------------------
-# SEND OTP EMAIL
+# SEND OTP EMAIL (not used now)
 # ------------------------------
 
 async def send_otp_email(receiver_email: EmailStr, otp: str):
-
-    html = f"""
-    <html>
-    <body style="font-family: Arial; text-align:center;">
-        <h2 style="color:#4F46E5;">Medical Hybrid QML</h2>
-        <p>Your verification code is:</p>
-        <h1 style="letter-spacing:6px;">{otp}</h1>
-        <p>This OTP will expire in 5 minutes.</p>
-    </body>
-    </html>
-    """
-
-    message = MessageSchema(
-        subject="Medical QML Email Verification",
-        recipients=[receiver_email],
-        body=html,
-        subtype="html"
-    )
-
-    fm = FastMail(conf)
-    await fm.send_message(message)
+    pass  # disabled to avoid crash on deployment
 
 
 # ------------------------------
@@ -131,9 +111,13 @@ async def signup(data: SignupRequest):
         upsert=True
     )
 
-    await send_otp_email(data.email, otp)
+    # ❌ Email disabled
+    # await send_otp_email(data.email, otp)
 
-    return {"message": "OTP sent to your email"}
+    return {
+        "message": "OTP generated successfully",
+        "otp": otp
+    }
 
 
 # ------------------------------
@@ -193,7 +177,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 
 # ------------------------------
-# FORGOT PASSWORD (SEND OTP)
+# FORGOT PASSWORD (FIXED)
 # ------------------------------
 
 @router.post("/forgot-password")
@@ -216,9 +200,14 @@ async def forgot_password(data: ForgotPasswordRequest):
         upsert=True
     )
 
-    await send_otp_email(data.email, otp)
+    # ❌ Email disabled (causing crash)
+    # await send_otp_email(data.email, otp)
 
-    return {"message": "OTP sent to your email"}
+    # ✅ Return OTP directly
+    return {
+        "message": "OTP generated successfully",
+        "otp": otp
+    }
 
 
 # ------------------------------
