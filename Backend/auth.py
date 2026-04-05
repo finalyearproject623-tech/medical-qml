@@ -21,12 +21,12 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 # ------------------------------
-# EMAIL CONFIG (kept but not used)
+# EMAIL CONFIG (FIXED)
 # ------------------------------
 
 conf = ConnectionConfig(
     MAIL_USERNAME="gouthamravisgr@gmail.com",
-    MAIL_PASSWORD="gmxkswtcynwuechy",
+    MAIL_PASSWORD="csjpncndfeeuxqlt",   # ✅ your app password
     MAIL_FROM="gouthamravisgr@gmail.com",
     MAIL_PORT=587,
     MAIL_SERVER="smtp.gmail.com",
@@ -80,11 +80,31 @@ def create_access_token(data: dict):
 
 
 # ------------------------------
-# SEND OTP EMAIL (not used now)
+# SEND OTP EMAIL (WORKING)
 # ------------------------------
 
 async def send_otp_email(receiver_email: EmailStr, otp: str):
-    pass  # disabled to avoid crash on deployment
+
+    html = f"""
+    <html>
+    <body style="font-family: Arial; text-align:center;">
+        <h2 style="color:#4F46E5;">Medical Hybrid QML</h2>
+        <p>Your OTP for verification is:</p>
+        <h1 style="letter-spacing:6px;">{otp}</h1>
+        <p>This OTP will expire in 5 minutes.</p>
+    </body>
+    </html>
+    """
+
+    message = MessageSchema(
+        subject="Your OTP - Medical QML",
+        recipients=[receiver_email],
+        body=html,
+        subtype="html"
+    )
+
+    fm = FastMail(conf)
+    await fm.send_message(message)
 
 
 # ------------------------------
@@ -111,13 +131,9 @@ async def signup(data: SignupRequest):
         upsert=True
     )
 
-    # ❌ Email disabled
-    # await send_otp_email(data.email, otp)
+    await send_otp_email(data.email, otp)
 
-    return {
-        "message": "OTP generated successfully",
-        "otp": otp
-    }
+    return {"message": "OTP sent to your email"}
 
 
 # ------------------------------
@@ -177,7 +193,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 
 # ------------------------------
-# FORGOT PASSWORD (FIXED)
+# FORGOT PASSWORD (EMAIL WORKING)
 # ------------------------------
 
 @router.post("/forgot-password")
@@ -200,14 +216,9 @@ async def forgot_password(data: ForgotPasswordRequest):
         upsert=True
     )
 
-    # ❌ Email disabled (causing crash)
-    # await send_otp_email(data.email, otp)
+    await send_otp_email(data.email, otp)
 
-    # ✅ Return OTP directly
-    return {
-        "message": "OTP generated successfully",
-        "otp": otp
-    }
+    return {"message": "OTP sent to your email"}
 
 
 # ------------------------------
