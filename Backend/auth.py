@@ -28,11 +28,11 @@ conf = ConnectionConfig(
     MAIL_USERNAME="gouthamravisgr@gmail.com",
     MAIL_PASSWORD="csjpncndfeeuxqlt",
     MAIL_FROM="gouthamravisgr@gmail.com",
-    MAIL_PORT=465,                  # ✅ FIXED
+    MAIL_PORT=465,
     MAIL_SERVER="smtp.gmail.com",
-    MAIL_FROM_NAME="Medical Hybrid QML",
-    MAIL_STARTTLS=False,            # ✅ FIXED
-    MAIL_SSL_TLS=True,              # ✅ FIXED
+    MAIL_FROM_NAME="Medical QML",
+    MAIL_STARTTLS=False,
+    MAIL_SSL_TLS=True,
     USE_CREDENTIALS=True
 )
 # ------------------------------

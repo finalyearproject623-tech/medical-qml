@@ -14,24 +14,17 @@
 from pymongo import MongoClient
 import os
 
-# =====================================
-# MONGO CONNECTION
-# =====================================
+MONGO_URL = os.getenv("MONGO_URL")
 
-MONGO_URL = os.getenv(
-    "MONGO_URL",
-    "mongodb+srv://medicalqml:medicalqml@cluster0.xo5hvif.mongodb.net/medical_qml_db"
-)
+try:
+    client = MongoClient(MONGO_URL)
+    db = client["medical_qml_db"]
 
-client = MongoClient(MONGO_URL)
+    users_collection = db["users"]
+    predictions_collection = db["predictions"]
+    otp_collection = db["otp"]
 
-# Force correct DB
-db = client["medical_qml_db"]
+    print("✅ MongoDB Connected Successfully")
 
-# Collections
-users_collection = db["users"]
-predictions_collection = db["predictions"]
-otp_collection = db["otp"]
-
-# Debug (REMOVE later if needed)
-print("✅ Connected to DB:", client.list_database_names())
+except Exception as e:
+    print("❌ MongoDB Error:", e)
