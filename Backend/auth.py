@@ -26,16 +26,15 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 conf = ConnectionConfig(
     MAIL_USERNAME="gouthamravisgr@gmail.com",
-    MAIL_PASSWORD="csjpncndfeeuxqlt",   # ✅ your app password
+    MAIL_PASSWORD="csjpncndfeeuxqlt",
     MAIL_FROM="gouthamravisgr@gmail.com",
-    MAIL_PORT=587,
+    MAIL_PORT=465,                  # ✅ FIXED
     MAIL_SERVER="smtp.gmail.com",
     MAIL_FROM_NAME="Medical Hybrid QML",
-    MAIL_STARTTLS=True,
-    MAIL_SSL_TLS=False,
+    MAIL_STARTTLS=False,            # ✅ FIXED
+    MAIL_SSL_TLS=True,              # ✅ FIXED
     USE_CREDENTIALS=True
 )
-
 # ------------------------------
 # MODELS
 # ------------------------------
