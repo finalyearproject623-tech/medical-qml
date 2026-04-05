@@ -196,51 +196,50 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
 # ------------------------------
 
 @router.post("/forgot-password")
-async def forgot_password(data: ForgotPasswordRequest):
-
+async def forgot_password(data: EmailSchema):
     user = users_collection.find_one({"email": data.email})
+
     if not user:
         raise HTTPException(status_code=404, detail="Email not found")
 
+    # generate OTP
     otp = str(random.randint(100000, 999999))
 
     otp_collection.update_one(
         {"email": data.email},
-        {
-            "$set": {
-                "otp": otp,
-                "expires_at": datetime.utcnow() + timedelta(minutes=5)
-            }
-        },
+        {"$set": {"otp": otp}},
         upsert=True
     )
 
-    await send_otp_email(data.email, otp)
+    # send email
+    message = MessageSchema(
+        subject="Reset Password OTP",
+        recipients=[data.email],
+        body=f"Your OTP is {otp}",
+        subtype="plain"
+    )
 
-    return {"message": "OTP sent to your email"}
+    fm = FastMail(conf)
+    await fm.send_message(message)
 
+    return {"message": "OTP sent successfully"}
 
 # ------------------------------
 # RESET PASSWORD
 # ------------------------------
 
 @router.post("/reset-password")
-def reset_password(data: ResetPasswordRequest):
-
+async def reset_password(data: ResetSchema):
     record = otp_collection.find_one({"email": data.email})
 
-    if not record:
-        raise HTTPException(status_code=400, detail="OTP not requested")
-
-    if record["otp"] != data.otp:
+    if not record or record["otp"] != data.otp:
         raise HTTPException(status_code=400, detail="Invalid OTP")
 
-    if datetime.utcnow() > record["expires_at"]:
-        raise HTTPException(status_code=400, detail="OTP expired")
+    hashed = bcrypt.hashpw(data.new_password.encode(), bcrypt.gensalt())
 
     users_collection.update_one(
         {"email": data.email},
-        {"$set": {"password": hash_password(data.new_password)}}
+        {"$set": {"password": hashed.decode()}}
     )
 
     otp_collection.delete_one({"email": data.email})
