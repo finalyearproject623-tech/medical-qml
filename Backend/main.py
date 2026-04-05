@@ -14,19 +14,20 @@ from database import predictions_collection
 app = FastAPI(title="Medical Hybrid ML + QML API")
 
 # =====================================
-# CORS CONFIG
+# CORS CONFIG (FIXED FOR DEPLOYMENT)
 # =====================================
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # ✅ allow all (fix CORS)
+    allow_origins=[
+        "https://medical-qml.vercel.app"   # ✅ YOUR FRONTEND URL
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 app.include_router(auth_router)
-
 
 # =====================================
 # REQUEST MODEL
