@@ -308,7 +308,7 @@ id,age,sex,dataset,cp,trestbps,chol,fbs,restecg,thalch,exang,oldpeak,slope,ca,th
 307,30,Female,Hungary,typical angina,170,237,FALSE,st-t abnormality,170,FALSE,0,,,fixed defect,0
 308,31,Female,Hungary,atypical angina,100,219,FALSE,st-t abnormality,150,FALSE,0,,,,0
 309,32,Female,Hungary,atypical angina,105,198,FALSE,normal,165,FALSE,0,,,,0
-310,32,Male,Hungary,atypical angina,110,225,FALSE,normal,184,FALSE,0,,,,0
+310,32,Male,Hungary,atypical angina,110,225,FALSE,normal,184,FALSE,0,,,,0 
 311,32,Male,Hungary,atypical angina,125,254,FALSE,normal,155,FALSE,0,,,,0
 312,33,Male,Hungary,non-anginal,120,298,FALSE,normal,185,FALSE,0,,,,0
 313,34,Female,Hungary,atypical angina,130,161,FALSE,normal,190,FALSE,0,,,,0

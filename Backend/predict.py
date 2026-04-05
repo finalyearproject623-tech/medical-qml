@@ -69,7 +69,7 @@ def explain_prediction(data):
 def hybrid_predict(full_input: dict):
 
     # -----------------------------
-    # QUANTUM FEATURES (4 FEATURES)
+    # QUANTUM FEATURES (FIXED WARNING HERE)
     # -----------------------------
     q_input = [
         full_input["age"],
@@ -78,7 +78,11 @@ def hybrid_predict(full_input: dict):
         full_input["oldpeak"]
     ]
 
-    q_input = np.array(q_input).reshape(1, -1)
+    # ✅ FIX: Convert to DataFrame with feature names
+    q_input = pd.DataFrame(
+        [q_input],
+        columns=["age", "chol", "thalch", "oldpeak"]
+    )
 
     q_input = quantum_imputer.transform(q_input)
     q_input = quantum_scaler.transform(q_input)[0]
@@ -88,7 +92,7 @@ def hybrid_predict(full_input: dict):
     q_prob = float((q_val + 1) / 2)
 
     # -----------------------------
-    # CLASSICAL FEATURES (ALL FEATURES)
+    # CLASSICAL FEATURES (NO CHANGE)
     # -----------------------------
     classical_raw = {
         "sex": full_input["sex"],
@@ -123,19 +127,15 @@ def hybrid_predict(full_input: dict):
     c_prob = float(classical_model.predict_proba(df_scaled)[0][1])
 
     # -----------------------------
-    # HYBRID FUSION (IMPROVED)
+    # HYBRID FUSION
     # -----------------------------
-
-    # Weighted combination
     final_prob = (0.7 * c_prob) + (0.3 * q_prob)
 
-    # Improved threshold
     if final_prob >= 0.55:
         final_result = "Heart Disease"
     else:
         final_result = "No Heart Disease"
 
-    # Explanation
     explanation = explain_prediction(full_input)
 
     return final_result, final_prob, q_prob, c_prob, explanation
